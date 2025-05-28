@@ -1796,7 +1796,9 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                       </svg>
                       <span className="text-white font-medium">89%</span>
                     </div>
-                    <span className="text-gray-400 text-sm bg-[rgba(42,42,42,0.5)] px-3 py-1 rounded-full">webapp</span>
+                    <span className="text-gray-400 text-sm bg-[rgba(42,42,42,0.5)] px-3 py-1 rounded-full">
+                      webapp
+                    </span>
                   </div>
                 </div>
               </div>
@@ -2836,4 +2838,4 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.\
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20\
