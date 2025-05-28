@@ -1,0 +1,6 @@
+{
+  "name": "Gemini Code Weaver",
+  "description": "An AI-powered web application to generate, preview, and modify HTML/CSS/JS code using Gemini. Features include prompt-to-code, image-to-code, and code-to-code transformations.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

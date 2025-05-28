@@ -1,0 +1,45 @@
+@keyframes text {
+  0%,
+  100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-text {
+  animation: text 5s ease infinite;
+}
+
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Animation pour le header au scroll */
+@supports (backdrop-filter: blur(20px)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+/* Fallback pour les navigateurs qui ne supportent pas backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .backdrop-blur-xl {
+    background-color: rgba(26, 26, 26, 0.9);
+  }
+}
+
+/* Animation smooth pour tous les éléments du header */
+.header-element {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de glow subtil pour le header scrollé */
+.header-scrolled {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(221, 249, 40, 0.1);
+}
