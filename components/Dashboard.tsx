@@ -388,69 +388,69 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
 
       {/* CSS Styles */}
       <style jsx>{`
-        .star {
-          position: fixed;
-          background: #ddf928;
-          border-radius: 50%;
+      .star {
+        position: fixed;
+        background: #ddf928;
+        border-radius: 50%;
+        opacity: 0;
+        animation: rise 8s linear infinite;
+        box-shadow: 0 0 25px #ddf928, 0 0 50px #ddf928, 0 0 75px #ddf928;
+        z-index: 50;
+      }
+      
+      .star::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 150%;
+        height: 1px;
+        background: #ddf928;
+        border-radius: 2px;
+      }
+      
+      .star::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(90deg);
+        width: 150%;
+        height: 1px;
+        background: #ddf928;
+        border-radius: 2px;
+      }
+      
+      @keyframes rise {
+        0% {
+          transform: translateY(100vh) scale(0.3);
           opacity: 0;
-          animation: rise 8s linear infinite;
-          box-shadow: 0 0 25px #ddf928, 0 0 50px #ddf928, 0 0 75px #ddf928;
-          z-index: 50;
         }
-        
-        .star::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 150%;
-          height: 1px;
-          background: #ddf928;
-          border-radius: 2px;
+        15% {
+          opacity: 0.8;
         }
-        
-        .star::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(90deg);
-          width: 150%;
-          height: 1px;
-          background: #ddf928;
-          border-radius: 2px;
+        70% {
+          opacity: 0.9;
         }
-        
-        @keyframes rise {
-          0% {
-            transform: translateY(100vh) scale(0.3);
-            opacity: 0;
-          }
-          15% {
-            opacity: 0.8;
-          }
-          70% {
-            opacity: 0.9;
-          }
-          85% {
-            opacity: 0.5;
-          }
-          100% {
-            transform: translateY(-50px) scale(0.8);
-            opacity: 0;
-          }
+        85% {
+          opacity: 0.5;
         }
-        
-        @keyframes pulse {
-          0% {
-            opacity: 0.6;
-          }
-          100% {
-            opacity: 0.9;
-          }
+        100% {
+          transform: translateY(-50px) scale(0.8);
+          opacity: 0;
         }
-      `}</style>
+      }
+      
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+        100% {
+          opacity: 0.9;
+        }
+      }
+    `}</style>
 
       <div className="w-60 h-screen flex flex-col bg-zinc-950 pb-4 overflow-auto relative z-10">
         {/* Header avec logo ÉNORME */}
@@ -758,6 +758,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
       {/* Contenu principal */}
       <div className="flex-1 flex items-start justify-start p-8 relative z-10 overflow-hidden">
         {activeSection === "generate" ? (
+          // Contenu Generate...
           <div className="w-full max-w-2xl mx-auto">
             {/* Titre */}
             <div className="text-center mb-8">
@@ -1156,7 +1157,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-.426-1.756-2.924-1.756 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                       />
                       <path
                         strokeLinecap="round"
@@ -1261,7 +1262,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-.426-1.756-2.924-1.756 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                       />
                       <path
                         strokeLinecap="round"
@@ -1779,7 +1780,9 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                     <svg
                       className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
                       fill="none"
-                      stroke="currentColor" viewBox="0 0 24 24">
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1796,9 +1799,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                       </svg>
                       <span className="text-white font-medium">89%</span>
                     </div>
-                    <span className="text-gray-400 text-sm bg-[rgba(42,42,42,0.5)] px-3 py-1 rounded-full">
-                      webapp
-                    </span>
+                    <span className="text-gray-400 text-sm bg-[rgba(42,42,42,0.5)] px-3 py-1 rounded-full">webapp</span>
                   </div>
                 </div>
               </div>
@@ -1847,7 +1848,8 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                       className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24">
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1925,7 +1927,8 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                       className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24">
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1999,7 +2002,8 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                       className="w-4 h-4 text-gray-400 hover:text-white cursor-pointer"
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24">
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -2206,188 +2210,283 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           </div>
         ) : activeSection === "subscribe" ? (
           <div className="w-full max-w-6xl mx-auto">
-  <div className="text-center mb-12">
-    <h1 className="text-4xl font-bold text-white mb-4">Choose Your Plan</h1>
-    <p className="text-gray-400 text-lg">Select the perfect plan for your needs</p>
-  </div>
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-white mb-4">Choose Your Plan</h1>
+              <p className="text-gray-400 text-lg">Select the perfect plan for your needs</p>
+            </div>
 
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-    {/* Free Plan */}
-    <div className="bg-[rgba(26,26,26,0.8)] border border-[rgba(42,42,42,0.5)] rounded-2xl p-8 hover:border-[rgba(42,42,42,0.8)] transition-all duration-300">
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
-        <div className="text-4xl font-bold text-white mb-2">
-          $0<span className="text-lg text-gray-400">/month</span>
-        </div>
-        <p className="text-gray-400 text-sm">For people looking to explore.</p>
-      </div>
-      
-      <ul className="space-y-4 mb-8">
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          5 messages per day
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          1 generation mode
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Up to 5 projects
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Export HTML/CSS
-        </li>
-      </ul>
-      
-      <button className="w-full py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-colors">
-        Start Building
-      </button>
-    </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Free Plan */}
+              <div className="bg-[rgba(26,26,26,0.8)] border border-[rgba(42,42,42,0.5)] rounded-2xl p-8 hover:border-[rgba(42,42,42,0.8)] transition-all duration-300">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
+                  <div className="text-4xl font-bold text-white mb-2">
+                    $0<span className="text-lg text-gray-400">/month</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">For people looking to explore.</p>
+                </div>
 
-    {/* Premium Plan */}
-    <div className="relative bg-gradient-to-br from-[#ddf928]/10 to-[#ddf928]/5 border-2 border-[#ddf928]/50 rounded-2xl p-8 hover:border-[#ddf928]/70 transition-all duration-300 transform hover:scale-105">
-      {/* Recommended Badge */}
-      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-        <div className="bg-[#ddf928] text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg">
-          Recommended
-        </div>
-      </div>
-      
-      <div className="text-center mb-8 mt-4">
-        <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
-        <div className="text-4xl font-bold text-white mb-2">
-          $20<span className="text-lg text-gray-400">/month</span>
-        </div>
-        <p className="text-gray-400 text-sm">For higher limits and power users.</p>
-      </div>
-      
-      <ul className="space-y-4 mb-8">
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          100 generations per day
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          All generation modes
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Unlimited projects
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Export HTML/CSS
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Access to Clone extension
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Shopify theme import
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Project history
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Priority support
-        </li>
-      </ul>
-      
-      <button className="w-full py-3 bg-[#ddf928] text-black font-bold rounded-xl hover:bg-[#ddf928]/90 transition-colors shadow-lg">
-        Upgrade to Premium
-      </button>
-    </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    5 messages per day
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    1 generation mode
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Up to 5 projects
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Export HTML/CSS
+                  </li>
+                </ul>
 
-    {/* Team Plan */}
-    <div className="bg-[rgba(26,26,26,0.8)] border border-[rgba(42,42,42,0.5)] rounded-2xl p-8 hover:border-[rgba(42,42,42,0.8)] transition-all duration-300">
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-white mb-2">Team</h3>
-        <div className="text-4xl font-bold text-white mb-2">
-          $30<span className="text-lg text-gray-400">/user/month</span>
-        </div>
-        <p className="text-gray-400 text-sm">For fast moving teams and collaboration.</p>
-      </div>
-      
-      <ul className="space-y-4 mb-8">
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Everything in Premium
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Unlimited generations
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Team collaboration
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Project sharing
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Centralized management
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Private API
-        </li>
-        <li className="flex items-center gap-3 text-gray-300">
-          <svg className="w-5 h-5 text-[#ddf928] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Dedicated 24/7 support
-        </li>
-      </ul>
-      
-      <button className="w-full py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-colors">
-        Start a Team plan
-      </button>
-    </div>
-  </div>
-</div>
+                <button className="w-full py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-colors">
+                  Start Building
+                </button>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="relative bg-gradient-to-br from-[#ddf928]/10 to-[#ddf928]/5 border-2 border-[#ddf928]/50 rounded-2xl p-8 hover:border-[#ddf928]/70 transition-all duration-300 transform hover:scale-105">
+                {/* Recommended Badge */}
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-[#ddf928] text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg">
+                    Recommended
+                  </div>
+                </div>
+
+                <div className="text-center mb-8 mt-4">
+                  <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
+                  <div className="text-4xl font-bold text-white mb-2">
+                    $20<span className="text-lg text-gray-400">/month</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">For higher limits and power users.</p>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    100 generations per day
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    All generation modes
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Unlimited projects
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Export HTML/CSS
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Access to Clone extension
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Shopify theme import
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Project history
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Priority support
+                  </li>
+                </ul>
+
+                <button className="w-full py-3 bg-[#ddf928] text-black font-bold rounded-xl hover:bg-[#ddf928]/90 transition-colors shadow-lg">
+                  Upgrade to Premium
+                </button>
+              </div>
+
+              {/* Team Plan */}
+              <div className="bg-[rgba(26,26,26,0.8)] border border-[rgba(42,42,42,0.5)] rounded-2xl p-8 hover:border-[rgba(42,42,42,0.8)] transition-all duration-300">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-2">Team</h3>
+                  <div className="text-4xl font-bold text-white mb-2">
+                    $30<span className="text-lg text-gray-400">/user/month</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">For fast moving teams and collaboration.</p>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Everything in Premium
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Unlimited generations
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Team collaboration
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Project sharing
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Centralized management
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Private API
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-300">
+                    <svg
+                      className="w-5 h-5 text-[#ddf928] flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Dedicated 24/7 support
+                  </li>
+                </ul>
+
+                <button className="w-full py-3 bg-zinc-800 text-white font-medium rounded-xl hover:bg-zinc-700 transition-colors">
+                  Start a Team plan
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="w-full max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold text-white mb-4">Section Not Found</h1>
@@ -2445,9 +2544,9 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
       {/* Create Team Modal */}
       {isCreateTeamModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">Create a New Team</h3>
+              <h3 className="text-xl font-bold text-white">Create a Team</h3>
               <button onClick={() => setIsCreateTeamModalOpen(false)} className="text-gray-400 hover:text-white">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2455,155 +2554,102 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
               </button>
             </div>
 
-            <div className="space-y-6">
-              {/* Team Name */}
-              <div>
-                <label htmlFor="teamName" className="block text-sm font-medium text-gray-300 mb-2">
-                  Team Name
-                </label>
-                <input
-                  type="text"
-                  id="teamName"
-                  value={newTeamData.name}
-                  onChange={(e) => setNewTeamData({ ...newTeamData, name: e.target.value })}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
-                  placeholder="My Awesome Team"
-                />
-              </div>
+            <div className="mb-4">
+              <label htmlFor="teamName" className="block text-sm font-medium text-gray-300 mb-2">
+                Team Name
+              </label>
+              <input
+                type="text"
+                id="teamName"
+                value={newTeamData.name}
+                onChange={(e) => setNewTeamData({ ...newTeamData, name: e.target.value })}
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
+                placeholder="Enter team name"
+              />
+            </div>
 
-              {/* Team Type */}
-              <div>
-                <label htmlFor="teamType" className="block text-sm font-medium text-gray-300 mb-2">
-                  Team Type
-                </label>
-                <select
-                  id="teamType"
-                  value={newTeamData.type}
-                  onChange={(e) => setNewTeamData({ ...newTeamData, type: e.target.value })}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
-                >
-                  <option value="design">Design Team</option>
-                  <option value="development">Development Team</option>
-                  <option value="marketing">Marketing Team</option>
-                  <option value="product">Product Team</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+            <div className="mb-4">
+              <label htmlFor="teamType" className="block text-sm font-medium text-gray-300 mb-2">
+                Team Type
+              </label>
+              <select
+                id="teamType"
+                value={newTeamData.type}
+                onChange={(e) => setNewTeamData({ ...newTeamData, type: e.target.value })}
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
+              >
+                <option value="design">Design</option>
+                <option value="development">Development</option>
+                <option value="marketing">Marketing</option>
+                <option value="general">General</option>
+              </select>
+            </div>
 
-              {/* Max Members */}
-              <div>
-                <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-300 mb-2">
-                  Maximum Members
-                </label>
-                <input
-                  type="number"
-                  id="maxMembers"
-                  min="1"
-                  max="100"
-                  value={newTeamData.maxMembers}
-                  onChange={(e) => setNewTeamData({ ...newTeamData, maxMembers: Number.parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
-                />
-              </div>
+            <div className="mb-4">
+              <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-300 mb-2">
+                Max Members
+              </label>
+              <input
+                type="number"
+                id="maxMembers"
+                value={newTeamData.maxMembers}
+                onChange={(e) =>
+                  setNewTeamData({ ...newTeamData, maxMembers: Number.parseInt(e.target.value, 10) || 10 })
+                }
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
+                placeholder="Enter max members"
+              />
+            </div>
 
-              {/* Permissions */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-300 mb-3">Member Permissions</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="canInvite"
-                      checked={newTeamData.permissions.canInvite}
-                      onChange={(e) =>
-                        setNewTeamData({
-                          ...newTeamData,
-                          permissions: { ...newTeamData.permissions, canInvite: e.target.checked },
-                        })
-                      }
-                      className="w-4 h-4 bg-zinc-800 border-zinc-700 rounded text-[#ddf928] focus:ring-[#ddf928]"
-                    />
-                    <label htmlFor="canInvite" className="ml-2 text-sm text-gray-300">
-                      Members can invite others
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="canEdit"
-                      checked={newTeamData.permissions.canEdit}
-                      onChange={(e) =>
-                        setNewTeamData({
-                          ...newTeamData,
-                          permissions: { ...newTeamData.permissions, canEdit: e.target.checked },
-                        })
-                      }
-                      className="w-4 h-4 bg-zinc-800 border-zinc-700 rounded text-[#ddf928] focus:ring-[#ddf928]"
-                    />
-                    <label htmlFor="canEdit" className="ml-2 text-sm text-gray-300">
-                      Members can edit team projects
-                    </label>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="canDelete"
-                      checked={newTeamData.permissions.canDelete}
-                      onChange={(e) =>
-                        setNewTeamData({
-                          ...newTeamData,
-                          permissions: { ...newTeamData.permissions, canDelete: e.target.checked },
-                        })
-                      }
-                      className="w-4 h-4 bg-zinc-800 border-zinc-700 rounded text-[#ddf928] focus:ring-[#ddf928]"
-                    />
-                    <label htmlFor="canDelete" className="ml-2 text-sm text-gray-300">
-                      Members can delete team content
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Access Code */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-300">Team Access Code</label>
-                  <button onClick={generateTeamCode} className="text-xs text-[#ddf928] hover:underline">
-                    Generate New Code
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-300">Permissions</label>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
                   <input
-                    type="text"
-                    readOnly
-                    value={generatedCode || "------"}
-                    className="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all font-mono text-center text-lg tracking-wider"
+                    type="checkbox"
+                    checked={newTeamData.permissions.canInvite}
+                    onChange={(e) =>
+                      setNewTeamData({
+                        ...newTeamData,
+                        permissions: { ...newTeamData.permissions, canInvite: e.target.checked },
+                      })
+                    }
+                    className="rounded text-[#ddf928] focus:ring-[#ddf928]"
                   />
-                  <button
-                    onClick={() => {
-                      if (generatedCode) {
-                        navigator.clipboard.writeText(generatedCode)
-                        alert("Code copied to clipboard!")
-                      }
-                    }}
-                    className="p-3 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-                    disabled={!generatedCode}
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-gray-400">Share this code with team members you want to invite</p>
+                  <span className="text-sm text-gray-300">Can Invite</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={newTeamData.permissions.canEdit}
+                    onChange={(e) =>
+                      setNewTeamData({
+                        ...newTeamData,
+                        permissions: { ...newTeamData.permissions, canEdit: e.target.checked },
+                      })
+                    }
+                    className="rounded text-[#ddf928] focus:ring-[#ddf928]"
+                  />
+                  <span className="text-sm text-gray-300">Can Edit</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={newTeamData.permissions.canDelete}
+                    onChange={(e) =>
+                      setNewTeamData({
+                        ...newTeamData,
+                        permissions: { ...newTeamData.permissions, canDelete: e.target.checked },
+                      })
+                    }
+                    className="rounded text-[#ddf928] focus:ring-[#ddf928]"
+                  />
+                  <span className="text-sm text-gray-300">Can Delete</span>
+                </label>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3">
               <button
                 onClick={() => setIsCreateTeamModalOpen(false)}
                 className="flex-1 px-4 py-3 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
@@ -2613,7 +2659,6 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
               <button
                 onClick={handleCreateTeam}
                 className="flex-1 px-4 py-3 bg-[#ddf928] text-black font-medium rounded-lg hover:bg-[#ddf928]/90 transition-colors"
-                disabled={!newTeamData.name}
               >
                 Create Team
               </button>
@@ -2625,9 +2670,9 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
       {/* Manage Team Modal */}
       {manageTeamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">Manage {manageTeamModal.name}</h3>
+              <h3 className="text-xl font-bold text-white">Manage Team</h3>
               <button onClick={() => setManageTeamModal(null)} className="text-gray-400 hover:text-white">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2635,85 +2680,54 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-gray-300">Team Members</h4>
-
-              {/* Admin (current user) always shown first */}
-              <div className="flex items-center justify-between p-3 bg-zinc-800/80 border border-[#ddf928]/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#ddf928] to-lime-500 rounded-full flex items-center justify-center">
-                    <span className="text-black font-bold">Y</span>
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">You (Admin)</div>
-                    <div className="text-gray-400 text-sm">you@example.com</div>
-                  </div>
-                </div>
-                <div className="bg-[#ddf928]/20 text-[#ddf928] text-xs font-medium px-2 py-1 rounded-full">OWNER</div>
-              </div>
-
-              {/* Other team members */}
-              {manageTeamModal.members
-                .filter((member) => member.role !== "owner")
-                .map((member, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+            <div className="mb-4">
+              <h4 className="text-lg font-semibold text-white mb-2">Team Members</h4>
+              <ul>
+                {manageTeamModal.members.map((member) => (
+                  <li key={member.email} className="flex items-center justify-between py-2 border-b border-zinc-700">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-medium">{member.name.charAt(0)}</span>
+                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">{member.name.charAt(0)}</span>
                       </div>
                       <div>
-                        <div className="text-white font-medium">{member.name}</div>
-                        <div className="text-gray-400 text-sm">{member.email}</div>
+                        <p className="text-white text-sm font-medium">{member.name}</p>
+                        <p className="text-gray-400 text-xs">{member.email}</p>
                       </div>
                     </div>
-                    {/* Only admin can remove members */}
-                    <button
-                      onClick={() => handleRemoveMember(manageTeamModal.id, member.email)}
-                      className="text-red-400 hover:text-red-300 bg-red-400/10 hover:bg-red-400/20 p-2 rounded-lg transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
+                    {member.role !== "owner" ? (
+                      <button
+                        onClick={() => handleRemoveMember(manageTeamModal.id, member.email)}
+                        className="text-red-500 hover:text-red-400"
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Owner</span>
+                    )}
+                  </li>
                 ))}
+              </ul>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-zinc-800">
-              {/* Admin sees Delete Team button */}
-              {manageTeamModal.members.find(
-                (member) => member.role === "owner" && member.email === "you@example.com",
-              ) ? (
-                <button
-                  onClick={() => {
-                    if (confirm("Are you sure you want to delete this team? This action cannot be undone.")) {
-                      setTeams(teams.filter((team) => team.id !== manageTeamModal.id))
-                      setManageTeamModal(null)
-                    }
-                  }}
-                  className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                >
-                  Delete Team Group
-                </button>
-              ) : (
-                /* Regular members see Leave Group button */
-                <button
-                  onClick={() => {
-                    if (confirm("Are you sure you want to leave this team?")) {
-                      // Logic to leave the team
-                      setManageTeamModal(null)
-                    }
-                  }}
-                  className="w-full px-4 py-3 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-                >
-                  Leave Group
-                </button>
-              )}
+            <div className="flex justify-between gap-3">
+              <button
+                onClick={() => handleLeaveTeam(manageTeamModal.id, "you@example.com")}
+                className="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
+              >
+                Leave Team
+              </button>
+              <button
+                onClick={() => handleDeleteTeam(manageTeamModal.id)}
+                className="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
+              >
+                Delete Team
+              </button>
+              <button
+                onClick={() => setManageTeamModal(null)}
+                className="px-4 py-3 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -2724,7 +2738,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">Invite to {inviteTeamModal.name}</h3>
+              <h3 className="text-xl font-bold text-white">Invite Member to Team</h3>
               <button onClick={() => setInviteTeamModal(null)} className="text-gray-400 hover:text-white">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2734,7 +2748,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
 
             <div className="mb-6">
               <label htmlFor="inviteEmail" className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
+                Enter Member's Email
               </label>
               <input
                 type="email"
@@ -2742,7 +2756,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
-                placeholder="user@example.com"
+                placeholder="member@example.com"
               />
             </div>
 
@@ -2763,79 +2777,6 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           </div>
         </div>
       )}
-
-      {/* Team Chat Interface */}
-      {selectedTeam && (
-        <div className="fixed inset-0 z-50 bg-zinc-900">
-          <div className="h-full flex">
-            {/* Sidebar */}
-            <div className="w-80 bg-zinc-950 border-r border-zinc-800 flex flex-col">
-              {/* Header */}
-              <div className="p-6 border-b border-zinc-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-white">{selectedTeam.name}</h2>
-                    <p className="text-gray-400 text-sm">{selectedTeam.members.length} members</p>
-                  </div>
-                  <button onClick={() => setSelectedTeam(null)} className="text-gray-400 hover:text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Projects Section */}
-              <div className="p-4 border-b border-zinc-800">
-                <h3 className="text-white font-medium mb-3">Projects</h3>
-                <div className="space-y-2">
-                  <div className="p-3 bg-zinc-800 rounded-lg">
-                    <div className="text-white text-sm font-medium">Landing Page Redesign</div>
-                    <div className="text-gray-400 text-xs">In Progress</div>
-                  </div>
-                  <div className="p-3 bg-zinc-800 rounded-lg">
-                    <div className="text-white text-sm font-medium">Mobile App UI</div>
-                    <div className="text-gray-400 text-xs">Planning</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tasks Section */}
-              <div className="flex-1 p-4 overflow-y-auto">
-                <h3 className="text-white font-medium mb-3">Tasks</h3>
-                <div className="space-y-3">
-                  {selectedTeam.tasks.map((task) => (
-                    <div key={task.id} className="p-3 bg-zinc-800 rounded-lg">
-                      <div className="text-white text-sm font-medium mb-1">{task.title}</div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-xs">@{task.assignee}</span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            task.status === "completed"
-                              ? "bg-green-500/20 text-green-400"
-                              : task.status === "in-progress"
-                                ? "bg-yellow-500/20 text-yellow-400"
-                                : "bg-gray-500/20 text-gray-400"
-                          }`}
-                        >
-                          {task.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
-              {/* Chat Header */}
-              <div className="p-6 border-b border-zinc-800 bg-zinc-900">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20\
+    </div>
+  )
+}
