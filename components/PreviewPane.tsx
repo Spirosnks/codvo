@@ -88,6 +88,13 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
   const [showTextColorPicker, setShowTextColorPicker] = useState(false)
   const [showBackgroundColorPicker, setShowBackgroundColorPicker] = useState(false)
 
+  // États pour le layout
+  const [isLayoutSectionOpen, setIsLayoutSectionOpen] = useState(false)
+  const [positionStep, setPositionStep] = useState(1) // Pas de déplacement en pixels
+
+  // État pour tracker si des modifications ont été faites
+  const [hasModifications, setHasModifications] = useState(false)
+
   const getViewportDimensions = () => {
     // VRAIES tailles selon viewport - même en mode édition !
     switch (viewportSize) {
@@ -112,28 +119,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
   }
 
   const closeEditPanel = () => {
-    // Sauvegarder les modifications dans le DOM principal ET les propager
-    if (iframeRef.current) {
-      const iframe = iframeRef.current
-      const doc = iframe.contentDocument || iframe.contentWindow?.document
-      if (doc) {
-        // Nettoyer les classes de sélection avant de récupérer le HTML
-        doc.querySelectorAll(".codro-selectable, .codro-selected, .codro-hover").forEach((el) => {
-          el.classList.remove("codro-selectable", "codro-selected", "codro-hover")
-        })
-
-        // Récupérer le HTML modifié de l'iframe
-        const updatedHTML = doc.documentElement.outerHTML
-
-        // Déclencher un événement personnalisé pour notifier le parent des changements
-        window.dispatchEvent(
-          new CustomEvent("previewUpdated", {
-            detail: { htmlContent: updatedHTML },
-          }),
-        )
-      }
-    }
-
+    // NE PAS sauvegarder automatiquement - seulement si l'utilisateur clique sur Update
     setIsEditPanelOpen(false)
     setSelectedElement(null)
     setIsImageSectionOpen(false)
@@ -143,6 +129,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     setAiPrompt("") // Reset du prompt AI
     setSelectedAIImage(null) // Reset de l'image AI
     setAiImagePreview(null) // Reset du preview AI
+    // NE PAS reset hasModifications pour garder les changements en mémoire
     onEditPanelChange?.(false)
   }
 
@@ -266,6 +253,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     if (detectedImages[imageIndex]) {
       const imgElement = detectedImages[imageIndex].element
       imgElement.src = newSrc
+      setHasModifications(true) // Marquer qu'il y a eu des modifications
 
       // Mettre à jour la liste des images détectées
       const updatedImages = [...detectedImages]
@@ -312,6 +300,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     img.style.display = "block"
 
     selectedElement.element.appendChild(img)
+    setHasModifications(true) // Marquer qu'il y a eu des modifications
 
     // Rafraîchir la liste des images
     const images = detectImagesInSelection()
@@ -363,6 +352,44 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     }
   }
 
+  const handleLayoutToggle = () => {
+    setIsLayoutSectionOpen(!isLayoutSectionOpen)
+  }
+
+  const moveElement = (direction: "up" | "down" | "left" | "right") => {
+    if (selectedElement?.element) {
+      const element = selectedElement.element as HTMLElement
+
+      // S'assurer que l'élément est positionné de manière relative ou absolue
+      const computedStyle = window.getComputedStyle(element)
+      if (computedStyle.position === "static") {
+        element.style.position = "relative"
+      }
+
+      // Obtenir les valeurs actuelles
+      const currentTop = Number.parseInt(computedStyle.top) || 0
+      const currentLeft = Number.parseInt(computedStyle.left) || 0
+
+      // Appliquer le déplacement
+      switch (direction) {
+        case "up":
+          element.style.top = `${currentTop - positionStep}px`
+          break
+        case "down":
+          element.style.top = `${currentTop + positionStep}px`
+          break
+        case "left":
+          element.style.left = `${currentLeft - positionStep}px`
+          break
+        case "right":
+          element.style.left = `${currentLeft + positionStep}px`
+          break
+      }
+
+      setHasModifications(true)
+    }
+  }
+
   // Fonction utilitaire pour convertir RGB en HEX
   const rgbToHex = (rgb: string): string => {
     const result = rgb.match(/\d+/g)
@@ -375,19 +402,240 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     return "#000000"
   }
 
+  const simulateLiquidRendering = (liquidCode: string): string => {
+    let simulatedCode = liquidCode
+
+    // Nettoyer d'abord tous les commentaires HTML et Liquid
+    simulatedCode = simulatedCode.replace(/<!--[\s\S]*?-->/g, "")
+    simulatedCode = simulatedCode.replace(/{%\s*comment\s*%}[\s\S]*?{%\s*endcomment\s*%}/g, "")
+
+    // Supprimer complètement les schémas JSON
+    simulatedCode = simulatedCode.replace(/{%\s*schema\s*%}[\s\S]*?{%\s*endschema\s*%}/g, "")
+
+    // Supprimer TOUS les schémas Liquid et les commentaires de schéma
+    simulatedCode = simulatedCode.replace(/{%\s*schema[\s\S]*?%}/g, "")
+    simulatedCode = simulatedCode.replace(/{%\s*endschema[\s\S]*?%}/g, "")
+    simulatedCode = simulatedCode.replace(/\{\{\s*section\.settings[\s\S]*?\}\}/g, "")
+    simulatedCode = simulatedCode.replace(/\{\{\s*block\.settings[\s\S]*?\}\}/g, "")
+
+    // Supprimer spécifiquement les schémas visibles dans le rendu final
+    simulatedCode = simulatedCode.replace(/\{%\s*schema\s*%\}[\s\S]*?\{%\s*endschema\s*%\}/g, "")
+    simulatedCode = simulatedCode.replace(/\{%[\s\S]*?schema[\s\S]*?%\}/g, "")
+
+    // Supprimer les styles Liquid
+    simulatedCode = simulatedCode.replace(/{%\s*style\s*%}[\s\S]*?{%\s*endstyle\s*%}/g, "")
+
+    // Supprimer les scripts Liquid
+    simulatedCode = simulatedCode.replace(/{%\s*javascript\s*%}[\s\S]*?{%\s*endjavascript\s*%}/g, "")
+
+    // Remplacer les variables Liquid courantes par des valeurs d'exemple AVANT de traiter les boucles
+    const liquidReplacements = {
+      // Variables de section
+      "{{ section.settings.title }}": "Section Title",
+      "{{ section.settings.subtitle }}": "Section Subtitle",
+      "{{ section.settings.description }}": "This is a description text for the section.",
+      "{{ section.settings.text }}": "Sample text content",
+      "{{ section.settings.heading }}": "Sample Heading",
+      "{{ section.settings.button_text }}": "Click Here",
+      "{{ section.settings.image }}": "/images/new-logo.png",
+      "{{ section.id }}": "section-" + Math.random().toString(36).substr(2, 9),
+
+      // Variables de bloc
+      "{{ block.settings.question_text | escape }}": "What is your question?",
+      "{{ block.settings.answer_text }}": "This is the answer to your question.",
+      "{{ block.settings.title }}": "Block Title",
+      "{{ block.settings.text }}": "Block text content",
+      "{{ block.settings.heading }}": "Block Heading",
+      "{{ block.settings.content }}": "Block content text",
+      "{{ block.id }}": "block-" + Math.random().toString(36).substr(2, 9),
+
+      // Variables de produit
+      "{{ product.title }}": "Sample Product",
+      "{{ product.price }}": "$29.99",
+      "{{ product.description }}": "This is a sample product description.",
+      "{{ product.featured_image }}": "/images/new-logo.png",
+
+      // Variables de collection
+      "{{ collection.title }}": "Sample Collection",
+      "{{ collection.description }}": "This is a sample collection description.",
+
+      // Variables de shop
+      "{{ shop.name }}": "Sample Store",
+      "{{ shop.description }}": "Welcome to our sample store",
+
+      // Variables courantes
+      "{{ settings.logo }}": "/images/new-logo.png",
+      '{{ "logo.png" | asset_url }}': "/images/new-logo.png",
+      '{{ "image.jpg" | asset_url }}': "/images/new-logo.png",
+
+      // Variables de page
+      "{{ page.title }}": "Sample Page",
+      "{{ page.content }}": "Sample page content",
+
+      // Variables d'article
+      "{{ article.title }}": "Sample Article",
+      "{{ article.content }}": "Sample article content",
+      "{{ article.excerpt }}": "Sample excerpt",
+
+      // Variables de customer
+      "{{ customer.first_name }}": "John",
+      "{{ customer.last_name }}": "Doe",
+      "{{ customer.email }}": "john@example.com",
+    }
+
+    // Appliquer les remplacements
+    Object.entries(liquidReplacements).forEach(([liquid, replacement]) => {
+      const escapedLiquid = liquid.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      simulatedCode = simulatedCode.replace(new RegExp(escapedLiquid, "g"), replacement)
+    })
+
+    // Traiter les boucles for AVANT les conditions
+    simulatedCode = simulatedCode.replace(
+      /{%\s*for\s+(\w+)\s+in\s+section\.blocks\s*%}([\s\S]*?){%\s*endfor\s*%}/g,
+      (match, variable, content) => {
+        // Simuler 3 blocs
+        let result = ""
+        for (let i = 0; i < 3; i++) {
+          let blockContent = content
+          // Remplacer les références au variable de boucle
+          blockContent = blockContent.replace(new RegExp(`{{ ${variable}\\.`, "g"), "{{ block.")
+          blockContent = blockContent.replace(new RegExp(`{{${variable}\\.`, "g"), "{{ block.")
+          result += blockContent
+        }
+        return result
+      },
+    )
+
+    // Traiter d'autres types de boucles
+    simulatedCode = simulatedCode.replace(
+      /{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}([\s\S]*?){%\s*endfor\s*%}/g,
+      (match, variable, collection, content) => {
+        // Simuler 2-3 éléments pour les autres collections
+        let result = ""
+        for (let i = 0; i < 2; i++) {
+          let itemContent = content
+          // Remplacer les références au variable de boucle par des valeurs génériques
+          itemContent = itemContent.replace(new RegExp(`{{ ${variable}\\.title }}`, "g"), `Item ${i + 1}`)
+          itemContent = itemContent.replace(new RegExp(`{{ ${variable}\\.content }}`, "g"), `Content for item ${i + 1}`)
+          itemContent = itemContent.replace(new RegExp(`{{ ${variable}\\.`, "g"), "{{ item.")
+          result += itemContent
+        }
+        return result
+      },
+    )
+
+    // Traiter les conditions if/unless APRÈS les boucles
+    simulatedCode = simulatedCode.replace(
+      /{%\s*if\s+section\.blocks\.size\s*==\s*0\s*%}([\s\S]*?){%\s*endif\s*%}/g,
+      "", // Masquer le message "no blocks" car on simule des blocs
+    )
+
+    // Supprimer toutes les autres conditions Liquid
+    simulatedCode = simulatedCode.replace(/{%\s*if\s+[\s\S]*?{%\s*endif\s*%}/g, "")
+    simulatedCode = simulatedCode.replace(/{%\s*unless\s+[\s\S]*?{%\s*endunless\s*%}/g, "")
+
+    // Supprimer les assign, capture et autres tags Liquid
+    simulatedCode = simulatedCode.replace(/{%\s*assign\s+[\s\S]*?%}/g, "")
+    simulatedCode = simulatedCode.replace(/{%\s*capture\s+[\s\S]*?{%\s*endcapture\s*%}/g, "")
+    simulatedCode = simulatedCode.replace(/{%\s*liquid\s+[\s\S]*?%}/g, "")
+
+    // Nettoyer TOUTES les variables Liquid restantes (remplacer par du texte ou vide selon le contexte)
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\|\s*asset_url\s*\}\}/g, "/images/new-logo.png")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.title\s*\}\}/g, "Sample Title")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.content\s*\}\}/g, "Sample Content")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.text\s*\}\}/g, "Sample Text")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.name\s*\}\}/g, "Sample Name")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.price\s*\}\}/g, "$29.99")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.url\s*\}\}/g, "#")
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]*\.id\s*\}\}/g, "sample-id")
+
+    // Nettoyer toutes les autres variables Liquid restantes
+    simulatedCode = simulatedCode.replace(/\{\{\s*[^}]+\s*\}\}/g, "Sample Text")
+
+    // Nettoyer TOUS les tags Liquid restants
+    simulatedCode = simulatedCode.replace(/{%\s*[^%]+\s*%}/g, "")
+
+    // Nettoyer les espaces multiples et les lignes vides
+    simulatedCode = simulatedCode.replace(/\n\s*\n\s*\n/g, "\n\n")
+    simulatedCode = simulatedCode.replace(/\s{3,}/g, " ")
+
+    // S'assurer qu'il n'y a pas de code brut affiché
+    // Supprimer les balises <code>, <pre> qui pourraient contenir du code
+    simulatedCode = simulatedCode.replace(/<code[^>]*>[\s\S]*?<\/code>/gi, "<span>Code content</span>")
+    simulatedCode = simulatedCode.replace(/<pre[^>]*>[\s\S]*?<\/pre>/gi, "<div>Code block</div>")
+
+    // Nettoyage final pour s'assurer qu'aucun code Liquid n'est visible
+    simulatedCode = simulatedCode.replace(/\{\{[\s\S]*?\}\}/g, "") // Supprimer toutes les variables Liquid restantes
+    simulatedCode = simulatedCode.replace(/\{%[\s\S]*?%\}/g, "") // Supprimer tous les tags Liquid restants
+    simulatedCode = simulatedCode.replace(/\{\{.*$/gm, "") // Supprimer les lignes commençant par {{ non fermées
+    simulatedCode = simulatedCode.replace(/\{%.*$/gm, "") // Supprimer les lignes commençant par {% non fermées
+
+    // Supprimer spécifiquement les schémas visibles
+    simulatedCode = simulatedCode.replace(/\{%\s*schema\s*%\}[\s\S]*?\{%\s*endschema\s*%\}/g, "")
+    simulatedCode = simulatedCode.replace(/\{%[\s\S]*?schema[\s\S]*?%\}/g, "")
+    simulatedCode = simulatedCode.replace(/\{%[\s\S]*?endschema[\s\S]*?%\}/g, "")
+
+    // Supprimer les lignes contenant "schema" ou "settings"
+    simulatedCode = simulatedCode.replace(/^.*schema.*$/gm, "")
+    simulatedCode = simulatedCode.replace(/^.*settings.*$/gm, "")
+    simulatedCode = simulatedCode.replace(/^.*presets.*$/gm, "")
+
+    // Nettoyer les lignes vides multiples créées par les suppressions
+    simulatedCode = simulatedCode.replace(/\n\s*\n\s*\n/g, "\n\n")
+
+    return simulatedCode
+  }
+
   useEffect(() => {
     if (iframeRef.current && htmlContent) {
       const iframe = iframeRef.current
       const doc = iframe.contentDocument || iframe.contentWindow?.document
 
       if (doc) {
-        doc.open()
-        doc.write(htmlContent)
-        doc.close()
+        // Seulement réécrire le document si le contenu HTML a changé
+        const currentContent = doc.documentElement.outerHTML
+        const isLiquidCode =
+          htmlContent.includes("{{") || htmlContent.includes("{%") || htmlContent.includes("{% schema %}")
 
-        // TOUJOURS ajouter les styles de base pour un rendu correct
-        const baseStyle = doc.createElement("style")
-        baseStyle.textContent = `
+        let processedContent = htmlContent
+
+        if (isLiquidCode) {
+          processedContent = simulateLiquidRendering(htmlContent)
+        }
+
+        // Vérification finale : s'assurer qu'aucun code n'est visible
+        if (processedContent.includes("{{") || processedContent.includes("{%") || processedContent.includes("```")) {
+          processedContent = processedContent.replace(/\{[{%][^}]*[}%]\}/g, "")
+          processedContent = processedContent.replace(/```[\s\S]*?```/g, "")
+          processedContent = processedContent.replace(/`[^`]*`/g, "")
+        }
+
+        // Vérifier que le contenu est du HTML valide
+        if (!processedContent.includes("<html") && !processedContent.includes("<!DOCTYPE")) {
+          processedContent = `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Preview</title>
+          </head>
+          <body>
+            ${processedContent}
+          </body>
+          </html>
+        `
+        }
+
+        // Seulement réécrire si le contenu a vraiment changé
+        if (!currentContent.includes(processedContent.replace(/\s+/g, " ").trim())) {
+          doc.open()
+          doc.write(processedContent)
+          doc.close()
+
+          // Ajouter les styles de base
+          const baseStyle = doc.createElement("style")
+          baseStyle.textContent = `
         * {
           box-sizing: border-box;
         }
@@ -398,26 +646,87 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
           line-height: 1.6;
         }
       `
-        doc.head.appendChild(baseStyle)
+          doc.head.appendChild(baseStyle)
+        }
+      }
+    }
+  }, [htmlContent]) // Seulement dépendre de htmlContent
 
-        // Ajouter les styles de sélection seulement si le mode sélection est actif
+  // Effet séparé pour gérer le mode sélection
+  useEffect(() => {
+    if (iframeRef.current) {
+      const iframe = iframeRef.current
+      const doc = iframe.contentDocument || iframe.contentWindow?.document
+
+      if (doc) {
+        // Nettoyer d'abord tous les styles et listeners existants
+        const existingSelectStyle = doc.getElementById("codro-select-styles")
+        if (existingSelectStyle) {
+          existingSelectStyle.remove()
+        }
+
+        // Nettoyer les classes de sélection existantes
+        doc.querySelectorAll(".codro-selectable, .codro-selected, .codro-hover").forEach((el) => {
+          el.classList.remove("codro-selectable", "codro-selected", "codro-hover")
+          el.removeAttribute("data-element-info")
+          // Supprimer les event listeners (clone et remplace pour supprimer tous les listeners)
+          const newEl = el.cloneNode(true)
+          el.parentNode?.replaceChild(newEl, el)
+        })
+
         if (isSelectMode) {
+          // Ajouter les styles de sélection avec un ID pour pouvoir les supprimer facilement
           const selectStyle = doc.createElement("style")
+          selectStyle.id = "codro-select-styles"
           selectStyle.textContent = `
-          .codro-selectable {
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-          }
-          .codro-hover {
-            outline: 2px solid #ddf928 !important;
-            outline-offset: 2px !important;
-          }
-          .codro-selected {
-            outline: 3px solid #ddf928 !important;
-            outline-offset: 2px !important;
-            /* Supprimer cette ligne : background-color: rgba(221, 249, 40, 0.1) !important; */
-          }
-        `
+.codro-selectable {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+.codro-hover {
+  outline: 2px dashed #ddf928 !important;
+  outline-offset: 2px !important;
+  z-index: 1000 !important;
+  position: relative !important;
+}
+.codro-selected {
+  outline: 3px solid #ddf928 !important;
+  outline-offset: 2px !important;
+  z-index: 1002 !important;
+  position: relative !important;
+}
+.codro-hover::before {
+  content: attr(data-element-info) !important;
+  position: absolute !important;
+  top: -25px !important;
+  left: 0 !important;
+  background: #ddf928 !important;
+  color: #000 ! important;
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  border-radius: 3px !important;
+  z-index: 1001 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+.codro-selected::before {
+  content: "✓ SELECTED: " attr(data-element-info) !important;
+  position: absolute !important;
+  top: -25px !important;
+  left: 0 !important;
+  background: #ddf928 !important;
+  color: #000 !important;
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  border-radius: 3px !important;
+  z-index: 1003 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+`
           doc.head.appendChild(selectStyle)
 
           // Event listeners pour la sélection
@@ -429,25 +738,41 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
 
             element.classList.add("codro-selectable")
 
-            // Hover effect - UN SEUL élément à la fois
-            element.addEventListener("mouseenter", (e) => {
-              e.stopPropagation()
-              // Supprimer le hover précédent
-              if (hoveredElement && hoveredElement !== element) {
-                hoveredElement.classList.remove("codro-hover")
-              }
-              element.classList.add("codro-hover")
-              setHoveredElement(element)
-            })
+            // Créer l'info de l'élément pour l'affichage
+            const elementInfo = `<${element.tagName.toLowerCase()}>${element.className ? "." + element.className.toString().split(" ")[0] : ""}`
+            element.setAttribute("data-element-info", elementInfo)
 
-            element.addEventListener("mouseleave", (e) => {
-              e.stopPropagation()
-              element.classList.remove("codro-hover")
-              if (hoveredElement === element) {
-                setHoveredElement(null)
-              }
-            })
+            // Hover effect - VISIBLE au survol avec info
+            element.addEventListener(
+              "mouseenter",
+              (e) => {
+                e.stopPropagation()
 
+                // Supprimer TOUS les hovers précédents
+                doc.querySelectorAll(".codro-hover").forEach((el) => {
+                  el.classList.remove("codro-hover")
+                })
+
+                // Ajouter le hover à cet élément avec info visible
+                element.classList.add("codro-hover")
+                setHoveredElement(element)
+              },
+              true,
+            )
+
+            element.addEventListener(
+              "mouseleave",
+              (e) => {
+                e.stopPropagation()
+                element.classList.remove("codro-hover")
+                if (hoveredElement === element) {
+                  setHoveredElement(null)
+                }
+              },
+              true,
+            )
+
+            // Click pour sélectionner
             element.addEventListener("click", (e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -462,7 +787,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                 el.classList.remove("codro-hover")
               })
 
-              // Ajouter la nouvelle sélection UNIQUEMENT à cet élément
+              // Ajouter la nouvelle sélection
               element.classList.add("codro-selected")
 
               // Créer les infos de l'élément sélectionné
@@ -477,80 +802,171 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
               openEditPanel(elementInfo)
             })
 
+            // Double-click pour édition inline du texte OU sélection de section globale
             element.addEventListener("dblclick", (e) => {
               e.preventDefault()
               e.stopPropagation()
 
-              // Vérifier si l'élément contient du texte éditable
-              if (element.textContent && element.textContent.trim()) {
+              // Vérifier si c'est un élément de texte
+              const isTextElement = [
+                "p",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h5",
+                "h6",
+                "span",
+                "div",
+                "a",
+                "button",
+                "label",
+              ].includes(element.tagName.toLowerCase())
+
+              if (isTextElement && element.textContent && element.textContent.trim()) {
+                // ÉDITION INLINE pour les éléments de texte
                 setIsInlineEditing(true)
                 setEditingElement(element)
 
-                // Créer un input temporaire pour l'édition
+                // Sauvegarder le texte original
                 const originalText = element.textContent
-                const input = doc.createElement("input")
-                input.type = "text"
-                input.value = originalText
+                const originalHTML = element.innerHTML
 
-                // Copier EXACTEMENT les styles de l'élément original sans les modifier
-                const computedStyle = doc.defaultView?.getComputedStyle(element)
-                if (computedStyle) {
-                  // Copier tous les styles SANS les modifier
-                  input.style.cssText = `
-                    width: ${element.offsetWidth}px !important;
-                    height: ${element.offsetHeight}px !important;
-                    background: transparent !important;
-                    border: 1px solid #ddf928 !important;
-                    padding: ${computedStyle.padding} !important;
-                    margin: ${computedStyle.margin} !important;
-                    font-family: ${computedStyle.fontFamily} !important;
-                    font-size: ${computedStyle.fontSize} !important;
-                    font-weight: ${computedStyle.fontWeight} !important;
-                    color: ${computedStyle.color} !important;
-                    text-align: ${computedStyle.textAlign} !important;
-                    line-height: ${computedStyle.lineHeight} !important;
-                    letter-spacing: ${computedStyle.letterSpacing} !important;
-                    text-decoration: ${computedStyle.textDecoration} !important;
-                    text-transform: ${computedStyle.textTransform} !important;
-                    display: ${computedStyle.display} !important;
-                    position: absolute !important;
-                    top: ${element.offsetTop}px !important;
-                    left: ${element.offsetLeft}px !important;
-                    z-index: 9999 !important;
-                    box-sizing: border-box !important;
-                    outline: none !important;
-                  `
+                // Créer un TEXTAREA temporaire avec les mêmes styles
+                const textarea = doc.createElement("textarea")
+                textarea.value = originalText
+
+                // Copier TOUS les styles de l'élément original
+                const computedStyle = window.getComputedStyle(element)
+                const rect = element.getBoundingClientRect()
+
+                // Appliquer tous les styles CSS
+                textarea.style.cssText = computedStyle.cssText
+                textarea.style.border = "2px solid #ddf928"
+                textarea.style.outline = "none"
+                textarea.style.background = "rgba(221, 249, 40, 0.1)"
+                textarea.style.resize = "none"
+                textarea.style.overflow = "hidden"
+
+                // Dimensions exactes
+                textarea.style.width = element.offsetWidth + "px"
+                textarea.style.height = element.offsetHeight + "px"
+                textarea.style.minHeight = element.offsetHeight + "px"
+
+                // Styles de texte identiques
+                textarea.style.fontSize = computedStyle.fontSize
+                textarea.style.fontFamily = computedStyle.fontFamily
+                textarea.style.fontWeight = computedStyle.fontWeight
+                textarea.style.fontStyle = computedStyle.fontStyle
+                textarea.style.color = computedStyle.color
+                textarea.style.textAlign = computedStyle.textAlign
+                textarea.style.lineHeight = computedStyle.lineHeight
+                textarea.style.letterSpacing = computedStyle.letterSpacing
+                textarea.style.wordSpacing = computedStyle.wordSpacing
+                textarea.style.textDecoration = computedStyle.textDecoration
+
+                // Espacement identique
+                textarea.style.margin = computedStyle.margin
+                textarea.style.padding = computedStyle.padding
+
+                // Remplacer temporairement l'élément
+                element.style.display = "none"
+                element.parentNode?.insertBefore(textarea, element)
+
+                // Focus et sélection
+                textarea.focus()
+                textarea.select()
+
+                // Auto-resize du textarea pour s'adapter au contenu
+                const autoResize = () => {
+                  textarea.style.height = "auto"
+                  textarea.style.height = Math.max(textarea.scrollHeight, element.offsetHeight) + "px"
                 }
 
-                // Masquer temporairement l'élément original
-                const originalVisibility = element.style.visibility
-                element.style.visibility = "hidden"
+                // Ajuster la taille au contenu
+                autoResize()
+                textarea.addEventListener("input", autoResize)
 
-                // Ajouter l'input au document
-                doc.body.appendChild(input)
-                input.focus()
-                input.select()
-
-                // Gérer la validation/annulation
-                const finishEditing = (save: boolean) => {
-                  if (save) {
-                    element.textContent = input.value
+                // Fonction pour terminer l'édition
+                const finishEditing = () => {
+                  const newText = textarea.value
+                  if (newText !== originalText) {
+                    // Mettre à jour le texte en préservant la structure HTML si c'était du HTML
+                    if (originalHTML.includes("<") && originalHTML !== originalText) {
+                      // Si c'était du HTML complexe, remplacer juste le texte
+                      element.innerHTML = originalHTML.replace(originalText, newText)
+                    } else {
+                      // Si c'était du texte simple
+                      element.textContent = newText
+                    }
                   }
-                  element.style.visibility = originalVisibility
-                  doc.body.removeChild(input)
+
+                  // Restaurer l'affichage
+                  element.style.display = ""
+                  textarea.remove()
                   setIsInlineEditing(false)
                   setEditingElement(null)
                 }
 
-                input.addEventListener("blur", () => finishEditing(true))
-                input.addEventListener("keydown", (e) => {
-                  if (e.key === "Enter") {
-                    finishEditing(true)
+                // Événements pour terminer l'édition
+                textarea.addEventListener("blur", finishEditing)
+                textarea.addEventListener("keydown", (e) => {
+                  if (e.key === "Enter" && e.ctrlKey) {
+                    // Ctrl+Enter pour sauvegarder
+                    finishEditing()
                   } else if (e.key === "Escape") {
-                    finishEditing(false)
+                    // Annuler les changements
+                    element.style.display = ""
+                    textarea.remove()
+                    setIsInlineEditing(false)
+                    setEditingElement(null)
                   }
+                  // Enter normal = nouvelle ligne (comportement par défaut du textarea)
                 })
+              } else {
+                // SÉLECTION DE SECTION GLOBALE pour les éléments non-texte
+                let parentSection = element.parentElement
+                while (
+                  parentSection &&
+                  !["section", "div", "article", "main", "header", "footer"].includes(
+                    parentSection.tagName.toLowerCase(),
+                  )
+                ) {
+                  parentSection = parentSection.parentElement
+                }
+
+                if (parentSection && parentSection !== element) {
+                  // Supprimer toutes les sélections
+                  doc.querySelectorAll(".codro-selected").forEach((el) => {
+                    el.classList.remove("codro-selected")
+                  })
+
+                  // Sélectionner la section parent
+                  parentSection.classList.add("codro-selected")
+
+                  const elementInfo: SelectedElementInfo = {
+                    tagName: parentSection.tagName.toLowerCase(),
+                    className: parentSection.className || "",
+                    textContent: parentSection.textContent?.slice(0, 100) || "",
+                    outerHTML: parentSection.outerHTML.slice(0, 200) + "...",
+                    element: parentSection,
+                  }
+
+                  openEditPanel(elementInfo)
+                }
               }
+            })
+
+            // Empêcher la propagation des événements de souris
+            ;["mouseover", "mouseout"].forEach((eventType) => {
+              element.addEventListener(
+                eventType,
+                (e) => {
+                  e.stopPropagation()
+                },
+                true,
+              )
             })
           }
 
@@ -558,17 +974,14 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
           const selectableElements = doc.querySelectorAll("*")
           selectableElements.forEach(addSelectListeners)
         } else {
-          // Nettoyer les classes de sélection
-          doc.querySelectorAll(".codro-selectable, .codro-selected, .codro-hover").forEach((el) => {
-            el.classList.remove("codro-selectable", "codro-selected", "codro-hover")
-          })
+          // Mode sélection désactivé - nettoyer
           setSelectedElement(null)
           setIsEditPanelOpen(false)
           setHoveredElement(null)
         }
       }
     }
-  }, [htmlContent, isSelectMode])
+  }, [isSelectMode])
 
   // Effet pour rafraîchir la section Image quand on change de sélection
   useEffect(() => {
@@ -955,6 +1368,55 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                       <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
                     </svg>
                   </button>
+
+                  {/* Bouton Update - Sauvegarder les modifications */}
+                  <button
+                    onClick={() => {
+                      // Forcer la sauvegarde des modifications
+                      if (iframeRef.current) {
+                        const iframe = iframeRef.current
+                        const doc = iframe.contentDocument || iframe.contentWindow?.document
+                        if (doc) {
+                          // Nettoyer les classes de sélection avant de récupérer le HTML
+                          doc.querySelectorAll(".codro-selectable, .codro-selected, .codro-hover").forEach((el) => {
+                            el.classList.remove("codro-selectable", "codro-selected", "codro-hover")
+                          })
+
+                          // Récupérer le HTML modifié de l'iframe
+                          const updatedHTML = doc.documentElement.outerHTML
+
+                          // Déclencher un événement personnalisé pour notifier le parent des changements
+                          window.dispatchEvent(
+                            new CustomEvent("previewUpdated", {
+                              detail: { htmlContent: updatedHTML },
+                            }),
+                          )
+
+                          // Marquer que les modifications ont été sauvegardées
+                          setHasModifications(false)
+
+                          // Réappliquer les styles de sélection
+                          setTimeout(() => {
+                            if (selectedElement?.element) {
+                              selectedElement.element.classList.add("codro-selected")
+                            }
+                          }, 100)
+                        }
+                      }
+                    }}
+                    className="flex items-center justify-center w-12 h-10 border border-[#404040]/50 rounded-md hover:bg-[#2a2a2a] transition-colors"
+                    title="Save changes to code"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 text-[#ddf928]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1308,6 +1770,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setElementWidth(e.target.value)
                               if (selectedElement?.element && e.target.value) {
                                 ;(selectedElement.element as HTMLElement).style.width = e.target.value + "px"
+                                setHasModifications(true)
                               }
                             }}
                             className="w-full bg-[#262626] border border-[#404040] rounded-md pl-7 pr-14 py-2 text-sm text-white text-right focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
@@ -1333,6 +1796,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setElementHeight(e.target.value)
                               if (selectedElement?.element && e.target.value) {
                                 ;(selectedElement.element as HTMLElement).style.height = e.target.value + "px"
+                                setHasModifications(true)
                               }
                             }}
                             className="w-full bg-[#262626] border border-[#404040] rounded-md pl-7 pr-14 py-2 text-sm text-white text-right focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
@@ -1396,6 +1860,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                                 setFontSize(e.target.value)
                                 if (selectedElement?.element && e.target.value) {
                                   ;(selectedElement.element as HTMLElement).style.fontSize = e.target.value + "px"
+                                  setHasModifications(true)
                                 }
                               }}
                               className="w-full bg-[#262626] border border-[#404040] rounded-md pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
@@ -1415,6 +1880,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setFontWeight(e.target.value)
                               if (selectedElement?.element) {
                                 ;(selectedElement.element as HTMLElement).style.fontWeight = e.target.value
+                                setHasModifications(true)
                               }
                             }}
                             className="w-full bg-[#262626] border border-[#404040] rounded-md py-2 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50 appearance-none"
@@ -1444,6 +1910,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                             setFontWeight(newWeight)
                             if (selectedElement?.element) {
                               ;(selectedElement.element as HTMLElement).style.fontWeight = newWeight
+                              setHasModifications(true)
                             }
                           }}
                           className={`p-3 rounded-lg border transition-all ${
@@ -1463,6 +1930,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                             setFontStyle(newStyle)
                             if (selectedElement?.element) {
                               ;(selectedElement.element as HTMLElement).style.fontStyle = newStyle
+                              setHasModifications(true)
                             }
                           }}
                           className={`p-3 rounded-lg border transition-all ${
@@ -1482,6 +1950,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                             setTextDecoration(newDecoration)
                             if (selectedElement?.element) {
                               ;(selectedElement.element as HTMLElement).style.textDecoration = newDecoration
+                              setHasModifications(true)
                             }
                           }}
                           className={`p-3 rounded-lg border transition-all ${
@@ -1512,6 +1981,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setTextAlign(align.value)
                               if (selectedElement?.element) {
                                 ;(selectedElement.element as HTMLElement).style.textAlign = align.value
+                                setHasModifications(true)
                               }
                             }}
                             className={`p-3 rounded-lg border transition-all ${
@@ -1552,6 +2022,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                                 setLineHeight(e.target.value)
                                 if (selectedElement?.element && e.target.value) {
                                   ;(selectedElement.element as HTMLElement).style.lineHeight = e.target.value
+                                  setHasModifications(true)
                                 }
                               }}
                               className="w-full bg-[#262626] border border-[#404040] rounded-md pr-8 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
@@ -1575,6 +2046,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                                 setLetterSpacing(e.target.value)
                                 if (selectedElement?.element && e.target.value) {
                                   ;(selectedElement.element as HTMLElement).style.letterSpacing = e.target.value + "px"
+                                  setHasModifications(true)
                                 }
                               }}
                               className="w-full bg-[#262626] border border-[#404040] rounded-md pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
@@ -1643,6 +2115,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setTextColor(newColor)
                               if (selectedElement?.element && value.length === 6) {
                                 ;(selectedElement.element as HTMLElement).style.color = newColor
+                                setHasModifications(true)
                               }
                             }}
                             className="w-20 bg-[#262626]/50 border border-[#404040] rounded-xl px-2 py-2 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50 transition-all"
@@ -1678,6 +2151,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setTextColor(newColor)
                               if (selectedElement?.element) {
                                 ;(selectedElement.element as HTMLElement).style.color = newColor
+                                setHasModifications(true)
                               }
                             }}
                           >
@@ -1697,9 +2171,10 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               const x = (e.clientX - rect.left) / rect.width
                               const hue = Math.round(x * 360)
                               const newColor = `hsl(${hue}, 100%, 50%)`
-                              setTextColor(newColor)
+                              setBackgroundColor(newColor)
                               if (selectedElement?.element) {
-                                ;(selectedElement.element as HTMLElement).style.color = newColor
+                                ;(selectedElement.element as HTMLElement).style.backgroundColor = newColor
+                                setHasModifications(true)
                               }
                             }}
                           />
@@ -1725,6 +2200,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setBackgroundColor(newColor)
                               if (selectedElement?.element && value.length === 6) {
                                 ;(selectedElement.element as HTMLElement).style.backgroundColor = newColor
+                                setHasModifications(true)
                               }
                             }}
                             className="w-20 bg-[#262626]/50 border border-[#404040] rounded-xl px-2 py-2 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50 transition-all"
@@ -1760,6 +2236,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setBackgroundColor(newColor)
                               if (selectedElement?.element) {
                                 ;(selectedElement.element as HTMLElement).style.backgroundColor = newColor
+                                setHasModifications(true)
                               }
                             }}
                           >
@@ -1782,6 +2259,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                               setBackgroundColor(newColor)
                               if (selectedElement?.element) {
                                 ;(selectedElement.element as HTMLElement).style.backgroundColor = newColor
+                                setHasModifications(true)
                               }
                             }}
                           />
@@ -1794,7 +2272,10 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
 
               {/* Layout Section */}
               <div className="border-b border-[#262626]/50">
-                <button className="flex items-center justify-between w-full p-3 hover:bg-[#262626]/30 transition-colors">
+                <button
+                  onClick={handleLayoutToggle}
+                  className="flex items-center justify-between w-full p-3 hover:bg-[#262626]/30 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -1803,15 +2284,13 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <rect width="18" height="18" x="3" y="3" rx="2" />
-                      <path d="M3 9h18" />
-                      <path d="M9 21V9" />
+                      <path d="M4 4v16h6V4H4zm14 4v8h-6V8h6z" />
                     </svg>
                     <span className="text-sm font-medium text-white">Layout</span>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-gray-400"
+                    className={`h-4 w-4 text-gray-400 transition-transform ${isLayoutSectionOpen ? "rotate-180" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -1819,134 +2298,94 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </button>
-              </div>
 
-              {/* Alignment Section */}
-              <div className="border-b border-[#262626]/50">
-                <button className="flex items-center justify-between w-full p-3 hover:bg-[#262626]/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <rect width="14" height="6" x="5" y="16" rx="2" />
-                      <rect width="10" height="6" x="7" y="2" rx="2" />
-                      <path d="M2 12h20" />
-                    </svg>
-                    <span className="text-sm font-medium text-white">Alignment</span>
-                  </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Forms Section */}
-              <div className="border-b border-[#262626]/50">
-                <button className="flex items-center justify-between w-full p-3 hover:bg-[#262626]/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-teal-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <ellipse cx="12" cy="5" rx="9" ry="3" />
-                      <path d="M3 5V19A9 3 0 0 0 21 19V5" />
-                      <path d="M3 12A9 3 0 0 0 21 12" />
-                    </svg>
-                    <span className="text-sm font-medium text-white">Forms</span>
-                  </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Contrôles de taille d'image */}
-            {detectedImages.length > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                    3
-                  </div>
-                  <span className="text-sm font-medium text-white">Ajuster la taille (optionnel)</span>
-                </div>
-
-                <div className="space-y-3">
-                  <select
-                    value={selectedImageForResize || ""}
-                    onChange={(e) => {
-                      const index = Number.parseInt(e.target.value)
-                      setSelectedImageForResize(index)
-                      if (detectedImages[index]) {
-                        const img = detectedImages[index].element
-                        setImageWidth(img.offsetWidth.toString())
-                        setImageHeight(img.offsetHeight.toString())
-                      }
-                    }}
-                    className="w-full bg-[#262626] border border-[#404040] rounded-md py-2 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
-                  >
-                    <option value="">Sélectionner une image à redimensionner</option>
-                    {detectedImages.map((img, index) => (
-                      <option key={index} value={index}>
-                        Image {index + 1} - {img.alt || `Image ${index + 1}`}
-                      </option>
-                    ))}
-                  </select>
-
-                  {selectedImageForResize !== null && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-2">Largeur</label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            placeholder="Auto"
-                            value={imageWidth}
-                            onChange={(e) => {
-                              setImageWidth(e.target.value)
-                              if (detectedImages[selectedImageForResize] && e.target.value) {
-                                detectedImages[selectedImageForResize].element.style.width = e.target.value + "px"
-                              }
-                            }}
-                            className="w-full bg-[#262626] border border-[#404040] rounded-md pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-                            px
-                          </span>
-                        </div>
+                {isLayoutSectionOpen && (
+                  <div className="p-3 bg-[#1a1a1a] space-y-4">
+                    {/* Position Controls */}
+                    <div>
+                      <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                        Position Controls
+                      </h4>
+                      <div className="flex items-center justify-center gap-4">
+                        {/* Up */}
+                        <button
+                          onClick={() => moveElement("up")}
+                          className="p-2 rounded-md border border-[#404040] hover:border-[#606060] transition-colors"
+                          title="Move Up"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 10l7-7m0 0l7 7m-7-7v18"
+                            />
+                          </svg>
+                        </button>
                       </div>
 
+                      <div className="flex items-center justify-between">
+                        {/* Left */}
+                        <button
+                          onClick={() => moveElement("left")}
+                          className="p-2 rounded-md border border-[#404040] hover:border-[#606060] transition-colors"
+                          title="Move Left"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14 10l-7-7m0 0l7 7m-7-7h18"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* Right */}
+                        <button
+                          onClick={() => moveElement("right")}
+                          className="p-2 rounded-md border border-[#404040] hover:border-[#606060] transition-colors"
+                          title="Move Right"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 14l7-7m0 0l-7 7m7-7H2"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-4">
+                        {/* Down */}
+                        <button
+                          onClick={() => moveElement("down")}
+                          className="p-2 rounded-md border border-[#404040] hover:border-[#606060] transition-colors"
+                          title="Move Down"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V2"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Step Size */}
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-2">Hauteur</label>
+                        <label className="block text-xs font-medium text-gray-400 mb-2">Step Size</label>
                         <div className="relative">
                           <input
                             type="number"
-                            placeholder="Auto"
-                            value={imageHeight}
+                            placeholder="1"
+                            value={positionStep}
                             onChange={(e) => {
-                              setImageHeight(e.target.value)
-                              if (detectedImages[selectedImageForResize] && e.target.value) {
-                                detectedImages[selectedImageForResize].element.style.height = e.target.value + "px"
-                              }
+                              setPositionStep(Number(e.target.value))
                             }}
                             className="w-full bg-[#262626] border border-[#404040] rounded-md pr-10 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#ddf928]/50"
                           />
@@ -1956,81 +2395,10 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
                         </div>
                       </div>
                     </div>
-                  )}
-
-                  {selectedImageForResize !== null && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          if (detectedImages[selectedImageForResize]) {
-                            const img = detectedImages[selectedImageForResize].element
-                            img.style.width = "100%"
-                            img.style.height = "auto"
-                            setImageWidth("100%")
-                            setImageHeight("auto")
-                          }
-                        }}
-                        className="flex-1 bg-[#404040] hover:bg-[#505050] text-white text-xs py-2 px-3 rounded-md transition-colors"
-                      >
-                        Adapter au conteneur
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (detectedImages[selectedImageForResize]) {
-                            const img = detectedImages[selectedImageForResize].element
-                            img.style.width = "auto"
-                            img.style.height = "auto"
-                            setImageWidth("auto")
-                            setImageHeight("auto")
-                          }
-                        }}
-                        className="flex-1 bg-[#404040] hover:bg-[#505050] text-white text-xs py-2 px-3 rounded-md transition-colors"
-                      >
-                        Taille originale
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Informations sur l'élément sélectionné */}
-            <div className="p-4 border-b border-[#262626]/50">
-              <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Selected Element</h4>
-              <div className="bg-[#262626]/30 rounded-md p-3">
-                <div className="text-sm font-medium text-white mb-1">&lt;{selectedElement?.tagName}&gt;</div>
-                {selectedElement?.className && (
-                  <div className="text-xs text-blue-400 mb-1">.{selectedElement.className.split(" ").join(".")}</div>
+                  </div>
                 )}
-                <div className="text-xs text-gray-400 truncate">
-                  {selectedElement?.textContent || "No text content"}
-                </div>
               </div>
             </div>
-          </div>
-
-          {/* Footer avec bouton Save Update */}
-          <div className="border-t border-[#262626]/50 p-3">
-            <button
-              onClick={closeEditPanel}
-              className="w-full flex items-center justify-center gap-2 bg-[#ddff00] hover:bg-[#b9cc21] text-black font-medium py-3 px-4 rounded-xl transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-3.5 w-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                />
-              </svg>
-              Save Update
-            </button>
           </div>
         </div>
       )}

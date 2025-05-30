@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import ErrorMessage from "./ErrorMessage"
 import { ImageIcon, CodeIcon } from "../constants"
 import { GenerationMode } from "../types"
@@ -22,6 +22,8 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
   const [error, setError] = useState<string | null>(null)
   const [activeQuickAction, setActiveQuickAction] = useState<string | null>(null)
   const themeInputRef = useRef<HTMLInputElement>(null)
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false)
 
   const [isJoinTeamModalOpen, setIsJoinTeamModalOpen] = useState<boolean>(false)
   const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState<boolean>(false)
@@ -374,6 +376,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
     }
   }
 
+  // Fermer le menu utilisateur quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isUserMenuOpen && !(event.target as Element).closest('.user-menu-container')) {
+        setIsUserMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isUserMenuOpen])
+
   return (
     <div className="bg-black h-screen overflow-hidden relative flex">
       {/* Glow effect */}
@@ -453,14 +469,18 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
     `}</style>
 
       <div className="w-60 h-screen flex flex-col bg-zinc-950 pb-4 overflow-auto relative z-10">
-        {/* Header avec logo ÉNORME */}
+        {/* Header avec logo */}
         <div className="flex items-center h-[140px] px-5 flex-shrink-0">
           <a href="#" className="flex items-center h-full cursor-pointer transition-all duration-200">
             <div className="flex items-center gap-2 cursor-pointer transition-transform duration-200">
               <img
-                src="/images/odro-logo-new.png"
-                alt="Odro Icon"
-                className="h-32 w-32 cursor-pointer transition-all duration-200 hover:scale-105"
+                src="/images/odro-logo-final.png"
+                alt="Odro Logo"
+                className="h-20 w-20 cursor-pointer transition-all duration-200 hover:scale-105"
+                onError={(e) => {
+                  console.error("Logo failed to load:", e)
+                  e.target.style.display = "none"
+                }}
               />
             </div>
           </a>
@@ -478,16 +498,16 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
             onClick={() => setActiveSection("generate")}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden w-full ${
               activeSection === "generate"
-                ? "bg-gradient-to-r from-lime-400/15 to-lime-400/5 text-white"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
                 : "text-gray-400 hover:bg-white/5"
             }`}
           >
             {activeSection === "generate" && (
-              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-lime-400 rounded-full"></div>
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
             )}
             <div
               className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
-                activeSection === "generate" ? "bg-lime-400/15" : "bg-white/6"
+                activeSection === "generate" ? "bg-[#ddf928]/15" : "bg-white/6"
               }`}
             >
               <svg
@@ -500,7 +520,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={activeSection === "generate" ? "text-lime-400" : ""}
+                className={activeSection === "generate" ? "text-[#ddf928]" : ""}
               >
                 <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"></path>
                 <path d="m14 7 3 3"></path>
@@ -518,11 +538,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           {/* Projects */}
           <button
             onClick={() => setActiveSection("projects")}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 mt-1 w-full ${
-              activeSection === "projects" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden mt-1 w-full ${
+              activeSection === "projects"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
+                : "text-gray-400 hover:bg-white/5"
             }`}
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white/6 flex-shrink-0">
+            {activeSection === "projects" && (
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
+            )}
+            <div
+              className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                activeSection === "projects" ? "bg-[#ddf928]/15" : "bg-white/6"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
@@ -533,6 +562,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={activeSection === "projects" ? "text-[#ddf928]" : ""}
               >
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
                 <path d="M8 10v4"></path>
@@ -546,11 +576,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           {/* Layout avec badge NEW */}
           <button
             onClick={() => setActiveSection("layout")}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 mt-1 w-full ${
-              activeSection === "layout" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden mt-1 w-full ${
+              activeSection === "layout"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
+                : "text-gray-400 hover:bg-white/5"
             }`}
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white/6 flex-shrink-0">
+            {activeSection === "layout" && (
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
+            )}
+            <div
+              className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                activeSection === "layout" ? "bg-[#ddf928]/15" : "bg-white/6"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
@@ -561,6 +600,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={activeSection === "layout" ? "text-[#ddf928]" : ""}
               >
                 <rect width="18" height="7" x="3" y="3" rx="1"></rect>
                 <rect width="9" height="7" x="3" y="14" rx="1"></rect>
@@ -568,17 +608,26 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
               </svg>
             </div>
             <span className="text-sm font-medium">Layout</span>
-            <div className="ml-auto bg-lime-400 text-black text-xs font-medium px-2 py-0.5 rounded-full">NEW</div>
+            <div className="ml-auto bg-[#ddf928] text-black text-xs font-medium px-2 py-0.5 rounded-full">NEW</div>
           </button>
 
           {/* Community */}
           <button
             onClick={() => setActiveSection("community")}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 mt-1 w-full ${
-              activeSection === "community" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden mt-1 w-full ${
+              activeSection === "community"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
+                : "text-gray-400 hover:bg-white/5"
             }`}
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white/6 flex-shrink-0">
+            {activeSection === "community" && (
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
+            )}
+            <div
+              className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                activeSection === "community" ? "bg-[#ddf928]/15" : "bg-white/6"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
@@ -589,6 +638,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={activeSection === "community" ? "text-[#ddf928]" : ""}
               >
                 <path d="M18 21a8 8 0 0 0-16 0"></path>
                 <circle cx="10" cy="8" r="5"></circle>
@@ -601,11 +651,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           {/* Teams */}
           <button
             onClick={() => setActiveSection("teams")}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 mt-1 w-full ${
-              activeSection === "teams" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden mt-1 w-full ${
+              activeSection === "teams"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
+                : "text-gray-400 hover:bg-white/5"
             }`}
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white/6 flex-shrink-0">
+            {activeSection === "teams" && (
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
+            )}
+            <div
+              className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                activeSection === "teams" ? "bg-[#ddf928]/15" : "bg-white/6"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
@@ -616,6 +675,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={activeSection === "teams" ? "text-[#ddf928]" : ""}
               >
                 <path d="M18 21a8 8 0 0 0-16 0"></path>
                 <circle cx="10" cy="8" r="5"></circle>
@@ -628,11 +688,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
           {/* Subscribe */}
           <button
             onClick={() => setActiveSection("subscribe")}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 mt-1 w-full ${
-              activeSection === "subscribe" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 relative overflow-hidden mt-1 w-full ${
+              activeSection === "subscribe"
+                ? "bg-gradient-to-r from-[#ddf928]/15 to-[#ddf928]/5 text-white"
+                : "text-gray-400 hover:bg-white/5"
             }`}
           >
-            <div className="flex items-center justify-center w-7 h-7 rounded-md bg-white/6 flex-shrink-0">
+            {activeSection === "subscribe" && (
+              <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-[#ddf928] rounded-full"></div>
+            )}
+            <div
+              className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                activeSection === "subscribe" ? "bg-[#ddf928]/15" : "bg-white/6"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="15"
@@ -643,6 +712,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={activeSection === "subscribe" ? "text-[#ddf928]" : ""}
               >
                 <rect width="20" height="14" x="2" y="5" rx="2"></rect>
                 <line x1="2" x2="22" y1="10" y2="10"></line>
@@ -658,8 +728,11 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
         </div>
 
         {/* Section utilisateur */}
-        <div className="mt-auto px-6">
-          <button className="flex items-center gap-3 p-2 rounded-lg w-full transition-all duration-200 hover:bg-white/5">
+        <div className="mt-auto px-6 user-menu-container relative">
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-3 p-2 rounded-lg w-full transition-all duration-200 hover:bg-white/5"
+          >
             <div className="relative">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 overflow-hidden">
                 <span className="text-white/80 text-sm font-medium">S</span>
@@ -684,6 +757,58 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
               <path d="m18 15-6-6-6 6"></path>
             </svg>
           </button>
+
+          {/* Menu utilisateur déroulant */}
+          {isUserMenuOpen && (
+            <div className="absolute bottom-20 left-6 right-6 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800/80 rounded-2xl p-6 shadow-2xl z-50">
+              <div className="mb-4">
+                <h4 className="text-white font-bold text-sm mb-4 tracking-wide">MY ACCOUNT</h4>
+              </div>
+
+              <div className="space-y-1 mb-4">
+                <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-.426-1.756-2.924-1.756 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium">Settings</span>
+                </button>
+
+                <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium">Subscribe</span>
+                </button>
+
+                <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-medium">Extension</span>
+                </button>
+              </div>
+
+              {/* Ligne séparatrice */}
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-700 to-transparent mb-4"></div>
+
+              {/* Bouton Logout */}
+              <button className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 group">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">Logout</span>
+              </button>
+            </div>
+          )}
 
           {/* Bouton collapse */}
           <button
@@ -2736,47 +2861,4 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
       {/* Invite Team Modal */}
       {inviteTeamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white">Invite Member to Team</h3>
-              <button onClick={() => setInviteTeamModal(null)} className="text-gray-400 hover:text-white">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <label htmlFor="inviteEmail" className="block text-sm font-medium text-gray-300 mb-2">
-                Enter Member's Email
-              </label>
-              <input
-                type="email"
-                id="inviteEmail"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#ddf928] focus:ring-1 focus:ring-[#ddf928] transition-all"
-                placeholder="member@example.com"
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setInviteTeamModal(null)}
-                className="flex-1 px-4 py-3 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleInviteMember(inviteTeamModal.id)}
-                className="flex-1 px-4 py-3 bg-[#ddf928] text-black font-medium rounded-lg hover:bg-[#ddf928]/90 transition-colors"
-              >
-                Send Invite
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+          <div className="bg-\

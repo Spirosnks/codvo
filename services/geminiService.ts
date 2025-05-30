@@ -380,21 +380,31 @@ Please modify the above code according to the user's request. Return the complet
       es: "IMPORTANT: Responde ÚNICAMENTE en español. Todos tus comentarios y explicaciones deben estar en español.",
     }
 
-    const prompt = `You are an expert web developer. Create ${existingCode ? "modified" : "complete"} HTML with embedded CSS and JavaScript.
+    const prompt = `You are an expert web developer specialized in creating BEAUTIFUL, MODERN designs. 
 
 ${languageInstructions[detectedLanguage as keyof typeof languageInstructions] || languageInstructions.en}
+
+CRITICAL REQUIREMENTS:
+- Generate ONLY HTML code with embedded CSS
+- NO explanations, NO text descriptions, NO comments
+- Create BEAUTIFUL, MODERN, PROFESSIONAL designs
+- Use attractive color schemes, gradients, shadows, animations
+- Make it visually stunning and responsive
+- Include modern UI elements (cards, buttons, hover effects)
+- Use Google Fonts for typography
+- Add CSS animations and transitions
+
+SHOPIFY COMPATIBILITY:
+- Use Liquid template syntax when appropriate ({{ }}, {% %})
+- Ensure Shopify theme compatibility
+- Follow Shopify design patterns
 
 ${contextPrompt}
 ${codeContext}
 
-Requirements:
-- Use Tailwind CSS classes or embedded <style> tag
-- Make it functional and responsive
-- Output ONLY HTML code, no explanations
+USER REQUEST: ${userPrompt}
 
-User Request: ${userPrompt}
-
-HTML Code:`
+Generate ONLY beautiful HTML/CSS code:`
 
     console.log("Envoi de la requête à l'API Gemini...")
     const response: GenerateContentResponse = await genAI.models.generateContent({
@@ -509,22 +519,30 @@ Please modify the above code according to the user's request. Return the complet
     }
 
     const textPart: Part = {
-      text: `Expert web developer: Create pixel-perfect HTML clone of this image.
+      text: `You are an expert web developer. Create a BEAUTIFUL, PIXEL-PERFECT Shopify-compatible HTML/CSS design from this image.
 
 ${languageInstructions[detectedLanguage as keyof typeof languageInstructions] || languageInstructions.en}
 
+CRITICAL REQUIREMENTS:
+- Output ONLY HTML code with embedded CSS
+- NO explanations, NO descriptions, NO comments
+- Create STUNNING visual designs with modern aesthetics
+- Match the image exactly but make it more beautiful
+- Use attractive gradients, shadows, animations
+- Extract exact colors and fonts from the image
+- Add hover effects and smooth transitions
+- Make it responsive and interactive
+
 ${codeContext}
 
-REQUIREMENTS:
-- Extract exact colors (hex codes)
-- Match fonts, spacing, layout precisely  
-- Use Tailwind CSS + custom CSS in <style> tag
-- Make responsive but prioritize desktop accuracy
-- Output ONLY HTML code
+SHOPIFY REQUIREMENTS:
+- Use Liquid syntax where appropriate
+- Ensure Shopify theme compatibility
+- Follow Shopify design standards
 
 User instruction: ${userInstruction}
 
-Generate HTML code:`,
+Generate ONLY beautiful Shopify-compatible HTML/CSS code:`,
     }
 
     const optimizedPrompt = {
@@ -602,20 +620,34 @@ export const generateCodeFromCode = async (
       es: "IMPORTANT: Responde ÚNICAMENTE en español. Todos tus comentarios y explicaciones deben estar en español.",
     }
 
-    const prompt = `Expert web developer: Modify the existing HTML code according to user instruction.
+    const prompt = `You are an expert web developer. Modify this code to create a BEAUTIFUL, MODERN Shopify-compatible design.
 
 ${languageInstructions[detectedLanguage as keyof typeof languageInstructions] || languageInstructions.en}
 
+CRITICAL REQUIREMENTS:
+- Output ONLY modified HTML code with embedded CSS
+- NO explanations, NO descriptions, NO comments
+- Make the design STUNNING and MODERN
+- Add beautiful colors, gradients, shadows
+- Include smooth animations and hover effects
+- Use modern typography and spacing
+- Make it responsive and interactive
+
 ${contextPrompt}
 
-${isSmallMod ? "SMALL MODIFICATION - Only change what's requested, return complete HTML." : "Modify the code as requested."}
+SHOPIFY REQUIREMENTS:
+- Maintain/add Liquid template syntax
+- Ensure Shopify theme compatibility
+- Follow modern Shopify design patterns
 
-Existing Code:
+${isSmallMod ? "Make ONLY the requested change while keeping the design beautiful." : "Enhance the entire design while making the requested modifications."}
+
+Current Code:
 ${existingCode}
 
 User Instruction: ${userInstruction}
 
-Modified HTML Code:`
+Generate ONLY beautiful Shopify-compatible HTML/CSS code:`
 
     console.log("Envoi de la requête à l'API Gemini...")
     const response: GenerateContentResponse = await genAI.models.generateContent({
