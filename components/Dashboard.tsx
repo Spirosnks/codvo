@@ -64,11 +64,20 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
   ])
 
   const [selectedTeam, setSelectedTeam] = useState(null)
-  const [manageTeamModal, setManageTeamModal] = useState(null)
+  const [manageTeamModal, setManageTeamModal] = useState<{
+    id: number
+    name: string
+    type: string
+    code: string
+    members: { name: string; email: string; role: string }[]
+    projects: number
+    tasks: { id: number; title: string; assignee: string; status: string }[]
+    messages: { id: number; sender: string; content: string; timestamp: string }[]
+  } | null>(null)
   const [inviteTeamModal, setInviteTeamModal] = useState(null)
   const [inviteEmail, setInviteEmail] = useState("")
 
-  const handleInviteMember = (teamId) => {
+  const handleInviteMember = (teamId: string) => {
     // Logic to invite a member
     alert(`Invite sent to ${inviteEmail} for team ${teamId}`)
     setInviteTeamModal(null)
@@ -186,7 +195,7 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
     )
   }
 
-  const handleSendMessage = (teamId) => {
+  const handleSendMessage = (teamId: string) => {
     if (newMessage.trim()) {
       const message = {
         id: Date.now(),
@@ -243,15 +252,6 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
     const file = event.target.files?.[0]
     if (file) {
       setImageFile(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-      setError(null)
-    } else {
-      setImageFile(null)
-      setImagePreviewUrl(null)
     }
   }
 
@@ -355,25 +355,14 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
     return "Generate Code"
   }
 
-  const handleDeleteTeam = (teamId) => {
-    if (confirm("Are you sure you want to delete this team? This action cannot be undone.")) {
-      setTeams(teams.filter((team) => team.id !== teamId))
-      setManageTeamModal(null)
-    }
+  const handleDeleteTeam = (teamId: string) => {
+    // Logic to delete team
+    setManageTeamModal(null)
   }
 
-  const handleLeaveTeam = (teamId, memberEmail) => {
-    if (confirm("Are you sure you want to leave this team?")) {
-      // Pour un utilisateur normal, on le retire simplement de l'équipe
-      setTeams(
-        teams.map((team) =>
-          team.id === teamId
-            ? { ...team, members: team.members.filter((member) => member.email !== memberEmail) }
-            : team,
-        ),
-      )
-      setManageTeamModal(null)
-    }
+  const handleLeaveTeam = (teamId: string, memberEmail: string) => {
+    // Logic to leave team
+    setManageTeamModal(null)
   }
 
   // Fermer le menu utilisateur quand on clique ailleurs
@@ -2861,6 +2850,11 @@ export default function Dashboard({ onStartGeneration }: DashboardProps) {
       {/* Invite Team Modal */}
       {inviteTeamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-\
-    )
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md">
+            {/* Contenu du modal */}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
